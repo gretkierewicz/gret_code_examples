@@ -99,17 +99,17 @@ class Worker:
         return self._name
 
     def update(self) -> None:
-        if self._current_job and self._current_job.is_done:
-            self._current_job = None
+        if not self._current_job:
+            self._queue_for_a_job()
+            return
 
-        self._queue_for_a_job()
+        if self._current_job.is_done:
+            self._current_job = None
 
     def after_update(self) -> None:
         pass
 
     def _queue_for_a_job(self) -> None:
-        if self._current_job:
-            return
         if self._get_a_job in self._app.dispose_job_event:
             return
 
