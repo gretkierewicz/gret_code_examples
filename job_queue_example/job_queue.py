@@ -1,50 +1,18 @@
 import random
 from time import time
-from typing import Callable, List, Optional
+from typing import List, Optional
 
-
-class Event:
-    def __init__(self) -> None:
-        self._list: List[Callable] = []
-
-    def __call__(self, *args, **kwargs) -> None:
-        for item in self._list:
-            item(*args, **kwargs)
-
-    def __contains__(self, item) -> bool:
-        return item in self._list
-
-    def attach(self, func: Callable) -> None:
-        if func not in self._list:
-            self._list.append(func)
-
-    def detach(self, func: Callable) -> None:
-        if func in self._list:
-            self._list.remove(func)
-
-    def move_to_end_of_queue(self, func: Callable) -> None:
-        if func in self._list:
-            self.detach(func)
-        self.attach(func)
-
-
-class JobQueue(Event):
-    def __call__(self, *args, **kwargs) -> bool:
-        if not self._list:
-            return False
-        item = self._list.pop(0)  # 0 so first observer subscribed is taken first
-        item(*args, **kwargs)
-        return True
+import events
 
 
 class App:
     def __init__(self) -> None:
         self._start_time = time()
 
-        self.dispose_job_event = JobQueue()
+        self.dispose_job_event: events.Event = events.EventForFirstToTake()
 
-        self.update_event = Event()
-        self.after_update_event = Event()
+        self.update_event: events.Event = events.EventForAll()
+        self.after_update_event: events.Event = events.EventForAll()
 
         self.job_list = []
 
@@ -152,7 +120,7 @@ class Manager(Worker):
             return
 
         # this assures that manager waits for another managers to dispose their jobs
-        self._app.update_event.move_to_end_of_queue(self.update)
+        self._app.update_event.reattach(self.update)
         self._was_job_disposed = False
         print(
             f"Time: {time() - self._app.start_time:.2f}s | "
@@ -163,13 +131,15 @@ class Manager(Worker):
         if not self._job_list:
             return
 
-        self._was_job_disposed: bool = self._app.dispose_job_event(self._job_list[0])
-        if self._was_job_disposed:
-            print(
-                f"Time: {time() - self._app.start_time:.2f}s | "
-                f"{self} disposed {self._job_list[0]} successfully"
-            )
-            self._job_list.pop(0)
+        if self._app.dispose_job_event.is_empty:
+            return None
+
+        self._app.dispose_job_event(self._job_list[0])
+        print(
+            f"Time: {time() - self._app.start_time:.2f}s | "
+            f"{self} disposed {self._job_list[0]} successfully"
+        )
+        self._job_list.pop(0)
 
     def _collect_job(self) -> None:
         if not self._app.job_list:
