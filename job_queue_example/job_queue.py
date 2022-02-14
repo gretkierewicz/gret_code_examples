@@ -105,12 +105,12 @@ class Manager(Worker):
         self._was_job_disposed = False
 
     @property
-    def jobs_queue_len(self) -> int:
+    def max_queued_jobs(self) -> int:
         """Maximum amount of jobs to collect. For no limit, set to 0"""
         return self._jobs_queue_len
 
-    @jobs_queue_len.setter
-    def jobs_queue_len(self, value: int) -> None:
+    @max_queued_jobs.setter
+    def max_queued_jobs(self, value: int) -> None:
         self._jobs_queue_len = max(0, int(value))
 
     def update(self) -> None:
@@ -131,10 +131,10 @@ class Manager(Worker):
 
     def _dispose_job(self) -> None:
         if not self._job_list:
-            return None
+            return
 
         if self._app.dispose_job_event.is_empty:
-            return None
+            return
 
         self._app.dispose_job_event(self._job_list[0])
         print(
@@ -147,7 +147,7 @@ class Manager(Worker):
         if not self._app.job_list:
             return
 
-        if self.jobs_queue_len and len(self._job_list) >= self.jobs_queue_len:
+        if self.max_queued_jobs and len(self._job_list) >= self.max_queued_jobs:
             return
 
         collected_job = self._app.job_list.pop()

@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     m1 = Manager(main_app, "Irene (M)")
     m2 = Manager(main_app, "Clark (M)")
-    m2.jobs_queue_len = 2
+    m2.max_queued_jobs = 2
 
     while True:
         main_app.run()
