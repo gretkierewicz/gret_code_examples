@@ -1,5 +1,5 @@
 import random
-from time import time
+import time
 from typing import List, Optional
 
 import events
@@ -7,7 +7,7 @@ import events
 
 class App:
     def __init__(self) -> None:
-        self._start_time = time()
+        self._start_time = time.time()
 
         self.dispose_job_event: events.Event = events.EventForFirstToTake()
 
@@ -44,10 +44,10 @@ class Job:
 
     @property
     def is_done(self) -> bool:
-        return time() - self._start_time >= self.estimated_time
+        return time.time() - self._start_time >= self.estimated_time
 
     def start(self) -> None:
-        self._start_time = time()
+        self._start_time = time.time()
 
 
 class Worker:
@@ -81,14 +81,16 @@ class Worker:
         if self._get_a_job in self._app.dispose_job_event:
             return
 
-        print(f"Time: {time() - self._app.start_time:.2f}s | {self} queued for a job")
+        print(
+            f"Time: {time.time() - self._app.start_time:.2f}s | {self} queued for a job"
+        )
         self._app.dispose_job_event.attach(self._get_a_job)
 
     def _get_a_job(self, job: Job) -> None:
         self._current_job = job
         self._current_job.start()
         print(
-            f"Time: {time() - self._app.start_time:.2f}s | "
+            f"Time: {time.time() - self._app.start_time:.2f}s | "
             f"{self} was managed to work over {job} "
             f"(estimated time: {job.estimated_time:.2f}s)"
         )
@@ -123,20 +125,20 @@ class Manager(Worker):
         self._app.update_event.reattach(self.update)
         self._was_job_disposed = False
         print(
-            f"Time: {time() - self._app.start_time:.2f}s | "
+            f"Time: {time.time() - self._app.start_time:.2f}s | "
             f"{self} moved to the end of queue"
         )
 
     def _dispose_job(self) -> None:
         if not self._job_list:
-            return
+            return None
 
         if self._app.dispose_job_event.is_empty:
             return None
 
         self._app.dispose_job_event(self._job_list[0])
         print(
-            f"Time: {time() - self._app.start_time:.2f}s | "
+            f"Time: {time.time() - self._app.start_time:.2f}s | "
             f"{self} disposed {self._job_list[0]} successfully"
         )
         self._job_list.pop(0)
@@ -151,7 +153,7 @@ class Manager(Worker):
         collected_job = self._app.job_list.pop()
         self._job_list.append(collected_job)
         print(
-            f"Time: {time() - self._app.start_time:.2f}s | "
+            f"Time: {time.time() - self._app.start_time:.2f}s | "
             f"{self} collected {collected_job} | jobs to dispose: "
             f"{[str(job) for job in self._job_list]}"
         )
