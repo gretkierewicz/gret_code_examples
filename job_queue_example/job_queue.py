@@ -9,10 +9,12 @@ class App:
     def __init__(self) -> None:
         self._start_time = time.time()
 
-        self.dispose_job_event: events.Event = events.EventForFirstToTake()
+        self.dispose_job_event: events.Event = events.Event(
+            events.EventDistributionFactory.create_for_first_to_take
+        )
 
-        self.update_event: events.Event = events.EventForAll()
-        self.after_update_event: events.Event = events.EventForAll()
+        self.update_event: events.Event = events.Event()
+        self.after_update_event: events.Event = events.Event()
 
         self.job_list = []
 
