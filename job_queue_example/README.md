@@ -4,7 +4,7 @@
 
 ### Idea
 
-Using Event (callable list of delegates) construct for creating simple app that
+Using Event (list of callbacks) construct for creating simple app that
 allows distribution of jobs.
 
 ---
