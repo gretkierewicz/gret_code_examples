@@ -17,9 +17,8 @@ class App:
 
         self.job_list = [Job(f"Job nr {i}") for i in range(5)[::-1]]
 
-    @property
-    def start_time(self) -> float:
-        return self._start_time
+    def log(self, message) -> None:
+        print(f"Time: {time.time() - self._start_time:.2f}s | {message}")
 
     def run(self) -> None:
         self.update_event()

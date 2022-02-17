@@ -1,5 +1,4 @@
-import time
-from typing import Optional
+from typing import List, Optional
 
 from .app import App
 from .jobs import Job
@@ -36,16 +35,13 @@ class Worker:
         if self._get_a_job in self._app.dispose_job_event:
             return
 
-        print(
-            f"Time: {time.time() - self._app.start_time:.2f}s | {self} queued for a job"
-        )
+        self._app.log(f"{self} queued for a job")
         self._app.dispose_job_event.attach(self._get_a_job)
 
     def _get_a_job(self, job: Job) -> None:
         self._current_job = job
         self._current_job.start()
-        print(
-            f"Time: {time.time() - self._app.start_time:.2f}s | "
+        self._app.log(
             f"{self} was managed to work over {job} "
             f"(estimated time: {job.estimated_time:.2f}s)"
         )
@@ -79,10 +75,7 @@ class Manager(Worker):
         # this assures that manager waits for another managers to dispose their jobs
         self._app.update_event.reattach(self.update)
         self._was_job_disposed = False
-        print(
-            f"Time: {time.time() - self._app.start_time:.2f}s | "
-            f"{self} moved to the end of queue"
-        )
+        self._app.log(f"{self} moved to the end of queue")
 
     def _dispose_job(self) -> None:
         if not self._job_list:
@@ -92,10 +85,7 @@ class Manager(Worker):
             return
 
         self._app.dispose_job_event(self._job_list[0])
-        print(
-            f"Time: {time.time() - self._app.start_time:.2f}s | "
-            f"{self} disposed {self._job_list[0]} successfully"
-        )
+        self._app.log(f"{self} disposed {self._job_list[0]} successfully")
         self._job_list.pop(0)
 
     def _collect_job(self) -> None:
@@ -107,8 +97,7 @@ class Manager(Worker):
 
         collected_job = self._app.job_list.pop()
         self._job_list.append(collected_job)
-        print(
-            f"Time: {time.time() - self._app.start_time:.2f}s | "
+        self._app.log(
             f"{self} collected {collected_job} | jobs to dispose: "
             f"{[str(job) for job in self._job_list]}"
         )
