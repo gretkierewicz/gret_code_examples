@@ -1,7 +1,9 @@
 """
 Module for running example of job queue
 """
-from .job_queue import App, Job, Manager, Worker
+from .app import App
+from .entities import Manager, Worker
+from .jobs import Job
 
 if __name__ == "__main__":
     main_app = App()

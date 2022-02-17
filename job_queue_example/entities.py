@@ -1,55 +1,8 @@
-import random
 import time
-from typing import List, Optional
+from typing import Optional
 
-import events
-
-
-class App:
-    def __init__(self) -> None:
-        self._start_time = time.time()
-
-        self.dispose_job_event: events.Event = events.Event(
-            events.EventDistributionFactory.create_for_first_to_take
-        )
-
-        self.update_event: events.Event = events.Event()
-        self.after_update_event: events.Event = events.Event()
-
-        self.job_list = []
-
-    @property
-    def start_time(self) -> float:
-        return self._start_time
-
-    def run(self) -> None:
-        self.update_event()
-        self.after_update_event()
-
-
-class Job:
-    def __init__(self, name: str) -> None:
-        self._name = name
-        self._estimated_time = random.uniform(0.02, 0.2)
-        self._start_time = None
-
-    def __str__(self) -> str:
-        return self.name
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def estimated_time(self) -> float:
-        return self._estimated_time
-
-    @property
-    def is_done(self) -> bool:
-        return time.time() - self._start_time >= self.estimated_time
-
-    def start(self) -> None:
-        self._start_time = time.time()
+from .app import App
+from .jobs import Job
 
 
 class Worker:
