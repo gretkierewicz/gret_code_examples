@@ -29,9 +29,11 @@ class Entity(abc.ABC):
 
 
 class Worker(Entity):
+    _current_job: Optional[Job]
+
     def __init__(self, app: App, name: str) -> None:
         super().__init__(app, name)
-        self._current_job: Optional[Job] = None
+        self._current_job = None
 
     def update(self) -> None:
         if not self._current_job:
@@ -45,8 +47,8 @@ class Worker(Entity):
         if self._get_a_job in self._app.dispose_job_event:
             return
 
-        self._app.log(f"{self} queued for a job")
         self._app.dispose_job_event.attach(self._get_a_job)
+        self._app.log(f"{self} queued for a job")
 
     def _get_a_job(self, job: Job) -> None:
         self._current_job = job
@@ -58,12 +60,16 @@ class Worker(Entity):
 
 
 class Manager(Entity):
+    _job_list: List[Job]
+    _jobs_queue_len: int
+    _disposed_job: bool
+
     def __init__(self, app: App, name: str) -> None:
         super().__init__(app, name)
 
-        self._job_list: List[Job] = []
+        self._job_list = []
         self._jobs_queue_len = 1
-        self._was_job_disposed = False
+        self._disposed_job = False
 
     @property
     def max_queued_jobs(self) -> int:
@@ -79,13 +85,13 @@ class Manager(Entity):
         self._dispose_job()
 
     def after_update(self) -> None:
-        if not self._was_job_disposed:
+        if not self._disposed_job:
             return
 
         # this assures that manager waits for another managers to dispose their jobs
         self._app.update_event.reattach(self.update)
-        self._was_job_disposed = False
-        self._app.log(f"{self} moved to the end of queue")
+        self._disposed_job = False
+        self._app.log(f"{self} moved to the end of the queue")
 
     def _dispose_job(self) -> None:
         if not self._job_list:
