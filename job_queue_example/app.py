@@ -1,6 +1,7 @@
 import time
 
 from .events import Event, EventDistributionFactory
+from .jobs import Job
 
 
 class App:
@@ -14,7 +15,7 @@ class App:
         self.update_event: Event = Event()
         self.after_update_event: Event = Event()
 
-        self.job_list = []
+        self.job_list = [Job(f"Job nr {i}") for i in range(5)[::-1]]
 
     @property
     def start_time(self) -> float:
