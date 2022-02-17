@@ -1,17 +1,15 @@
-import abc
 from typing import List, Optional
 
-from .app import App
+from .app import App, IUpdatable, IWorkable
 from .jobs import Job
 
 
-class Entity(abc.ABC):
+class Entity(IUpdatable):
     def __init__(self, app: App, name: str) -> None:
         self._app = app
         self._name = name
 
-        self._app.update_event.attach(self.update)
-        self._app.after_update_event.attach(self.after_update)
+        self._app.subscribe(self)
 
     def __str__(self) -> str:
         return self.name
@@ -20,7 +18,6 @@ class Entity(abc.ABC):
     def name(self) -> str:
         return self._name
 
-    @abc.abstractmethod
     def update(self):
         pass
 
@@ -28,7 +25,7 @@ class Entity(abc.ABC):
         pass
 
 
-class Worker(Entity):
+class Worker(Entity, IWorkable):
     _current_job: Optional[Job]
 
     def __init__(self, app: App, name: str) -> None:
@@ -44,13 +41,11 @@ class Worker(Entity):
             self._current_job = None
 
     def _queue_for_a_job(self) -> None:
-        if self._get_a_job in self._app.dispose_job_event:
-            return
+        joined_job_disposition = self._app.join_job_disposition(self)
+        if joined_job_disposition:
+            self._app.log(f"{self} queued for a job")
 
-        self._app.dispose_job_event.attach(self._get_a_job)
-        self._app.log(f"{self} queued for a job")
-
-    def _get_a_job(self, job: Job) -> None:
+    def run_a_job(self, job: Job) -> None:
         self._current_job = job
         self._current_job.start()
         self._app.log(
@@ -89,7 +84,8 @@ class Manager(Entity):
             return
 
         # this assures that manager waits for another managers to dispose their jobs
-        self._app.update_event.reattach(self.update)
+        self._app.unsubscribe(self)
+        self._app.subscribe(self)
         self._disposed_job = False
         self._app.log(f"{self} moved to the end of the queue")
 
@@ -97,10 +93,10 @@ class Manager(Entity):
         if not self._job_list:
             return
 
-        if not self._app.dispose_job_event:
+        job_disposed = self._app.dispose_job(self._job_list[0])
+        if not job_disposed:
             return
 
-        self._app.dispose_job_event(self._job_list[0])
         self._app.log(f"{self} disposed {self._job_list[0]} successfully")
         self._disposed_job = True
         self._job_list.pop(0)
