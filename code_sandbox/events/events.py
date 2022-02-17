@@ -58,6 +58,15 @@ class Event:
     def __iter__(self) -> Iterator[Callable]:
         return self._list.__iter__()
 
+    @property
+    def call_strategy(self) -> EventDistribution:
+        return self._event_distribution
+
+    @call_strategy.setter
+    def call_strategy(self, new_event_distribution: EventDistribution) -> None:
+        self._event_distribution = new_event_distribution
+        self._event_distribution.set_context(self)
+
     def pop(self, idx: Optional[int] = None) -> Callable:
         if idx is None:
             idx = -1
@@ -75,12 +84,3 @@ class Event:
     def reattach(self, func: Callable) -> None:
         self.detach(func)
         self.attach(func)
-
-    @property
-    def call_strategy(self) -> EventDistribution:
-        return self._event_distribution
-
-    @call_strategy.setter
-    def call_strategy(self, new_event_distribution: EventDistribution) -> None:
-        self._event_distribution = new_event_distribution
-        self._event_distribution.set_context(self)
