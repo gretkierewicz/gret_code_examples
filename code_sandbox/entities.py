@@ -102,6 +102,7 @@ class Manager(Entity):
 
         self._app.dispose_job_event(self._job_list[0])
         self._app.log(f"{self} disposed {self._job_list[0]} successfully")
+        self._disposed_job = True
         self._job_list.pop(0)
 
     def _collect_job(self) -> None:
