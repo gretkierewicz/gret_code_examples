@@ -64,7 +64,7 @@ class App:
         return True
 
     def dispose_job(self, job: Job) -> bool:
-        if not self._dispose_job_event:
+        if self._dispose_job_event.empty:
             return False
 
         self._dispose_job_event(job)

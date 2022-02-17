@@ -59,6 +59,10 @@ class Event:
         return self._list.__iter__()
 
     @property
+    def empty(self) -> bool:
+        return not self
+
+    @property
     def call_strategy(self) -> EventDistribution:
         return self._event_distribution
 
