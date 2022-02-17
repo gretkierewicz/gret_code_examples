@@ -1,14 +1,14 @@
+import abc
 from typing import List, Optional
 
 from .app import App
 from .jobs import Job
 
 
-class Worker:
+class Entity(abc.ABC):
     def __init__(self, app: App, name: str) -> None:
         self._app = app
         self._name = name
-        self._current_job: Optional[Job] = None
 
         self._app.update_event.attach(self.update)
         self._app.after_update_event.attach(self.after_update)
@@ -20,6 +20,19 @@ class Worker:
     def name(self) -> str:
         return self._name
 
+    @abc.abstractmethod
+    def update(self):
+        pass
+
+    def after_update(self):
+        pass
+
+
+class Worker(Entity):
+    def __init__(self, app: App, name: str) -> None:
+        super().__init__(app, name)
+        self._current_job: Optional[Job] = None
+
     def update(self) -> None:
         if not self._current_job:
             self._queue_for_a_job()
@@ -27,9 +40,6 @@ class Worker:
 
         if self._current_job.is_done:
             self._current_job = None
-
-    def after_update(self) -> None:
-        pass
 
     def _queue_for_a_job(self) -> None:
         if self._get_a_job in self._app.dispose_job_event:
@@ -47,7 +57,7 @@ class Worker:
         )
 
 
-class Manager(Worker):
+class Manager(Entity):
     def __init__(self, app: App, name: str) -> None:
         super().__init__(app, name)
 
