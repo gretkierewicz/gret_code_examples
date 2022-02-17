@@ -102,7 +102,7 @@ class Event(EventContainer):
 
     @property
     def is_empty(self) -> bool:
-        return False if self._list else True
+        return not self
 
     def attach(self, func: Callable) -> None:
         if func not in self._list:
