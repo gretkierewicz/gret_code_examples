@@ -91,7 +91,7 @@ class Manager(Entity):
         if not self._job_list:
             return
 
-        if self._app.dispose_job_event.is_empty:
+        if not self._app.dispose_job_event:
             return
 
         self._app.dispose_job_event(self._job_list[0])
