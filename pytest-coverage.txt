@@ -12,10 +12,7 @@ codewars_kata\tests\test_battleships_field_validator.py ......           [100%]
 ---------- coverage: platform win32, python 3.10.0-final-0 -----------
 Name                                                                       Stmts   Miss  Cover
 ----------------------------------------------------------------------------------------------
-code_sandbox\__init__.py                                                       0      0   100%
 code_sandbox\gret_pycoords\__init__.py                                         1      0   100%
-code_sandbox\gret_pycoords\tests\__init__.py                                   0      0   100%
-code_sandbox\gret_pycoords\tests\vectors\__init__.py                           0      0   100%
 code_sandbox\gret_pycoords\tests\vectors\conftest.py                           9      0   100%
 code_sandbox\gret_pycoords\tests\vectors\test_vector2d_dunder_methods.py      98      0   100%
 code_sandbox\gret_pycoords\vectors.py                                         24      0   100%
@@ -23,15 +20,13 @@ code_sandbox\utils\__init__.py                                                 2
 code_sandbox\utils\conversion.py                                              11      0   100%
 code_sandbox\utils\events\__init__.py                                          1      0   100%
 code_sandbox\utils\events\events.py                                           59     29    51%
-code_sandbox\utils\tests\__init__.py                                           0      0   100%
 code_sandbox\utils\tests\test_conversion.py                                   24      0   100%
-codewars_kata\__init__.py                                                      0      0   100%
-codewars_kata\battleships_field_validator\__init__.py                          0      0   100%
 codewars_kata\battleships_field_validator\validator.py                        53      2    96%
-codewars_kata\tests\__init__.py                                                0      0   100%
 codewars_kata\tests\test_battleships_field_validator.py                       16      0   100%
 ----------------------------------------------------------------------------------------------
 TOTAL                                                                        298     31    90%
 
+7 empty files skipped.
 
-============================= 39 passed in 0.27s ==============================
+
+============================= 39 passed in 0.26s ==============================
