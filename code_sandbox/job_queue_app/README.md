@@ -1,20 +1,18 @@
-# Job queue example
+# Job queue app
 
 ---
+### Assumptions
 
-### Idea
-
-Using Event (list of callbacks) construct for creating simple app that
+- Using Event (list of callbacks) construct for creating simple app that
 allows distribution of jobs.
 
 ---
-
-### Sample output:
+### Example of output:
 
 * Workers: 
     * Steve
     * Sophi
-* Managers: 
+- Managers: 
     * Irene - list of jobs to dispose limit = 1
     * Clark - list of jobs to dispose limit = 2
 
@@ -56,3 +54,5 @@ Time: 0.16s | Clark (M) moved to the end of queue
 Time: 0.27s | Sophi (w) queued for a job
 Time: 0.36s | Steve (w) queued for a job
 ```
+
+---

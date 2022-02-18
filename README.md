@@ -1,14 +1,21 @@
-# Gret Code Examples
+# Gret's Code Examples
 
 ---
-
 ### Repo aim
 
 - Growing skills related to OOP, clean code and patterns.
-- Having all smaller projects in one place.
 
 ---
+### Sections, and it's purposes
 
+- Code sandbox - set of very different modules of my own design
+    - Having all smaller projects in one place.
+    - Usage of external packages brought to minimum.
+    
+* CodeWars' Kata - Implementation of specific tasks from CodeWars platform
+    - Place for sharing my approach to given task
+
+---
 ### Tests
 
 - Running tests with `pytest` including coverage (`pytest-cov` package required).
@@ -19,3 +26,5 @@
 ```bash
 pytest --cov > pytest-coverage.txt
 ```
+
+---
