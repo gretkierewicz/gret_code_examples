@@ -24,3 +24,15 @@ class TestTurnIntoFloats:
         with pytest.raises(ValueError) as excinfo:
             turn_into_floats(*["not_a_number", 1, 2])
         assert "could not convert string" in str(excinfo.value)
+
+    def test_no_args(self):
+        assert turn_into_floats() == []
+
+    def test_zeroed_limit_without_args(self):
+        assert turn_into_floats(output_count=0) == []
+
+    def test_zeroed_limit_with_args(self):
+        assert turn_into_floats(1, 2, 3, output_count=0) == [1, 2, 3]
+
+    def test_negative_limit(self):
+        assert turn_into_floats(1, 2, 3, output_count=-1) == []
