@@ -2,7 +2,7 @@ import abc
 import time
 from typing import Any, List
 
-from .events import Event, ForFirstToTakeDistribution
+from ..events import Event, ForFirstToTakeDistribution
 from .jobs import Job
 
 
