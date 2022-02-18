@@ -25,7 +25,7 @@ def turn_into_floats(*args: Any, output_count: int = 0) -> List[float]:
 
     numbers = [float(arg) for arg in args]
     if output_count and len(numbers) < output_count:
-        numbers += [0] * output_count
+        numbers += [0] * (output_count - len(numbers))
     if output_count and len(numbers) > output_count:
-        numbers = numbers[:output_count]
+        del numbers[output_count:]
     return numbers
