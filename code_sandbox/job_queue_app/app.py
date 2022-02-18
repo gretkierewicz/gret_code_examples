@@ -2,8 +2,8 @@ import abc
 import time
 from typing import Any, List
 
-from ..utils import Event, ForFirstToTakeDistribution
-from .jobs import Job
+from . import jobs
+from .. import utils
 
 
 class IUpdatable(abc.ABC):
@@ -18,27 +18,27 @@ class IUpdatable(abc.ABC):
 
 class IWorkable(abc.ABC):
     @abc.abstractmethod
-    def run_a_job(self, job: Job) -> None:
+    def run_a_job(self, job: jobs.Job) -> None:
         pass
 
 
 class App:
-    _update_event: Event
-    _after_update_event: Event
+    _update_event: utils.Event
+    _after_update_event: utils.Event
 
-    _dispose_job_event: Event
+    _dispose_job_event: utils.Event
 
-    _job_list: List[Job]
+    _job_list: List[jobs.Job]
     _start_time: float
 
     def __init__(self) -> None:
         self._start_time = time.time()
 
-        self._update_event = Event()
-        self._after_update_event = Event()
+        self._update_event = utils.Event()
+        self._after_update_event = utils.Event()
 
-        self._dispose_job_event = Event()
-        self._dispose_job_event.event_distribution = ForFirstToTakeDistribution()
+        self._dispose_job_event = utils.Event()
+        self._dispose_job_event.event_distribution = utils.ForFirstToTakeDistribution()
 
         self.job_list = []
 
@@ -63,7 +63,7 @@ class App:
         self._dispose_job_event.attach(worker.run_a_job)
         return True
 
-    def dispose_job(self, job: Job) -> bool:
+    def dispose_job(self, job: jobs.Job) -> bool:
         if self._dispose_job_event.empty:
             return False
 

@@ -1,12 +1,11 @@
 from typing import List, Optional
 
-from .app import App, IUpdatable, IWorkable
-from .jobs import Job
+from . import app, jobs
 
 
-class Entity(IUpdatable):
-    def __init__(self, app: App, name: str) -> None:
-        self._app = app
+class Entity(app.IUpdatable):
+    def __init__(self, app_: app.App, name: str) -> None:
+        self._app = app_
         self._name = name
 
         self._app.subscribe(self)
@@ -25,11 +24,11 @@ class Entity(IUpdatable):
         pass
 
 
-class Worker(Entity, IWorkable):
-    _current_job: Optional[Job]
+class Worker(Entity, app.IWorkable):
+    _current_job: Optional[jobs.Job]
 
-    def __init__(self, app: App, name: str) -> None:
-        super().__init__(app, name)
+    def __init__(self, app_: app.App, name: str) -> None:
+        super().__init__(app_, name)
         self._current_job = None
 
     def update(self) -> None:
@@ -45,7 +44,7 @@ class Worker(Entity, IWorkable):
         if joined_job_disposition:
             self._app.log(f"{self} queued for a job")
 
-    def run_a_job(self, job: Job) -> None:
+    def run_a_job(self, job: jobs.Job) -> None:
         self._current_job = job
         self._current_job.start()
         self._app.log(
@@ -55,12 +54,12 @@ class Worker(Entity, IWorkable):
 
 
 class Manager(Entity):
-    _job_list: List[Job]
+    _job_list: List[jobs.Job]
     _jobs_queue_len: int
     _disposed_job: bool
 
-    def __init__(self, app: App, name: str) -> None:
-        super().__init__(app, name)
+    def __init__(self, app_: app.App, name: str) -> None:
+        super().__init__(app_, name)
 
         self._job_list = []
         self._jobs_queue_len = 1
