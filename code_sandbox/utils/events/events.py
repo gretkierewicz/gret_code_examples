@@ -44,7 +44,7 @@ class Event:
 
     def __init__(self) -> None:
         self._list = []
-        self.call_strategy = ForEveryCallbackDistribution()
+        self.event_distribution = ForEveryCallbackDistribution()
 
     def __bool__(self) -> bool:
         return True if self._list else False
@@ -63,12 +63,12 @@ class Event:
         return not self
 
     @property
-    def call_strategy(self) -> EventDistribution:
+    def event_distribution(self) -> EventDistribution:
         return self._event_distribution
 
-    @call_strategy.setter
-    def call_strategy(self, new_event_distribution: EventDistribution) -> None:
-        self._event_distribution = new_event_distribution
+    @event_distribution.setter
+    def event_distribution(self, event_distribution: EventDistribution) -> None:
+        self._event_distribution = event_distribution
         self._event_distribution.set_context(self)
 
     def pop(self, idx: Optional[int] = None) -> Callable:

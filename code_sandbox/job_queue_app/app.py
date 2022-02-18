@@ -38,7 +38,7 @@ class App:
         self._after_update_event = Event()
 
         self._dispose_job_event = Event()
-        self._dispose_job_event.call_strategy = ForFirstToTakeDistribution()
+        self._dispose_job_event.event_distribution = ForFirstToTakeDistribution()
 
         self.job_list = []
 
