@@ -2,7 +2,7 @@ import random
 import time
 
 
-class Job:
+class Task:
     def __init__(self, name: str) -> None:
         self._name = name
         self._estimated_time = random.uniform(0.02, 0.2)
