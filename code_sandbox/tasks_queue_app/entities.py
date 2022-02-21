@@ -8,7 +8,8 @@ class Entity(app.SupportsUpdates):
         self._app = app_
         self._name = name
 
-        self._app.subscribe(self)
+        self._app.subscribe(app.EventNames.Update, self.update)
+        self._app.subscribe(app.EventNames.AfterUpdate, self.after_update)
 
     def __str__(self) -> str:
         return self.name
@@ -81,8 +82,8 @@ class Manager(Entity):
             return
 
         # this assures that manager waits for another managers to dispose their tasks
-        self._app.unsubscribe(self)
-        self._app.subscribe(self)
+        self._app.unsubscribe(app.EventNames.Update, self.update)
+        self._app.subscribe(app.EventNames.AfterUpdate, self.update)
         self._disposed_task = False
         self._app.log(f"{self} moved to the end of the queue")
 
