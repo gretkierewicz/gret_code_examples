@@ -1,5 +1,5 @@
 import time
-from typing import Any, List, Protocol
+from typing import Any, List, Optional, Protocol
 
 from . import tasks
 from .. import utils
@@ -36,7 +36,7 @@ class App:
         self._dispose_task_event = utils.Event()
         self._dispose_task_event.event_distribution = utils.ForFirstToTakeDistribution()
 
-        self.tasks_list = []
+        self._tasks_pool = []
 
     def log(self, message: Any) -> None:
         print(f"Time: {time.time() - self._start_time:.2f}s | {message}")
@@ -52,6 +52,15 @@ class App:
     def unsubscribe(self, obj_: SupportsUpdates) -> None:
         self._update_event.detach(obj_.update)
         self._after_update_event.detach(obj_.after_update)
+
+    def load_tasks(self, tasks_list: List[tasks.Task]) -> None:
+        self._tasks_pool += tasks_list
+
+    def get_task(self) -> Optional[tasks.Task]:
+        if not self._tasks_pool:
+            return None
+
+        return self._tasks_pool.pop()
 
     def join_task_disposition(self, obj_: SupportsWorking) -> bool:
         if obj_.work_on in self._dispose_task_event:

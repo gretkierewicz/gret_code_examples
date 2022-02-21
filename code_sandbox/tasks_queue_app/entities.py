@@ -101,13 +101,13 @@ class Manager(Entity):
         self._tasks_pool.pop(0)
 
     def _collect_task(self) -> None:
-        if not self._app.tasks_list:
-            return
-
         if self.max_queued_tasks and len(self._tasks_pool) >= self.max_queued_tasks:
             return
 
-        collected_task = self._app.tasks_list.pop()
+        collected_task = self._app.get_task()
+        if collected_task is None:
+            return
+
         self._tasks_pool.append(collected_task)
         self._app.log(
             f"{self} collected {collected_task} | tasks to dispose: "

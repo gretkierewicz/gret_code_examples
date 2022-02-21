@@ -5,7 +5,7 @@ from . import app, entities, tasks
 
 if __name__ == "__main__":
     main_app = app.App()
-    main_app.tasks_list += [tasks.Task(f"Task nr {i}") for i in range(5)[::-1]]
+    main_app.load_tasks([tasks.Task(f"Task nr {i}") for i in range(5)[::-1]])
 
     w1 = entities.Worker(main_app, "Steve (w)")
     w2 = entities.Worker(main_app, "Sophi (w)")
