@@ -40,9 +40,7 @@ class Worker(Entity, app.SupportsWorking):
             self._current_task = None
 
     def _queue_for_a_task(self) -> None:
-        joined_task_disposition = self._app.join_task_disposition(self)
-        if joined_task_disposition:
-            self._app.log(f"{self} queued for a task")
+        self._app.join_task_disposition(self)
 
     def work_on(self, task: tasks.Task) -> None:
         self._current_task = task

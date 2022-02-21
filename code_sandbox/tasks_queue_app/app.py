@@ -65,7 +65,9 @@ class App:
     def join_task_disposition(self, obj_: SupportsWorking) -> bool:
         if obj_.work_on in self._dispose_task_event:
             return False
+
         self._dispose_task_event.attach(obj_.work_on)
+        self.log(f"{obj_} queued for a task")
         return True
 
     def dispose_task(self, task: tasks.Task) -> bool:
