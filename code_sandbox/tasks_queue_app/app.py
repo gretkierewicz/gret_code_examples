@@ -1,5 +1,5 @@
 import time
-from typing import Any, List, Optional, Protocol
+from typing import Any, Iterable, List, Optional, Protocol
 
 from . import tasks
 from .. import utils
@@ -53,8 +53,8 @@ class App:
         self._update_event.detach(obj_.update)
         self._after_update_event.detach(obj_.after_update)
 
-    def load_tasks(self, tasks_list: List[tasks.Task]) -> None:
-        self._tasks_pool += tasks_list
+    def load_tasks(self, tasks_iterable: Iterable[tasks.Task]) -> None:
+        self._tasks_pool += list(tasks_iterable)
 
     def get_task(self) -> Optional[tasks.Task]:
         if not self._tasks_pool:
