@@ -158,11 +158,14 @@ class Manager(Entity):
         if not self._disposed_task:
             return
 
+        self.move_to_end_of_update_queue()
+        self._disposed_task = False
+
+    def move_to_end_of_update_queue(self) -> None:
         # this assures that manager waits for another managers to dispose their tasks
         self._event_pool[EventNames.Update].detach(self.update)
         self._event_pool[EventNames.Update].attach(self.update)
-        self._disposed_task = False
-        # self.print_msg(f"{self} moved to the end of the queue")
+        self.print_msg(f"{self} moved to the end of the queue")
 
     def dispose_task(self) -> Optional[tasks.Task]:
         task = self._tasks_pool.get()
