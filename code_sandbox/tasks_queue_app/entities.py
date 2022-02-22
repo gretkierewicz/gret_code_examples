@@ -91,7 +91,7 @@ class Worker(Entity, SupportsWorking):
         self._current_task = None
 
     def __repr__(self):
-        return f"Worker(\"{self.name}\")"
+        return f'Worker("{self.name}")'
 
     def update(self) -> None:
         msgs = []
@@ -112,7 +112,7 @@ class Worker(Entity, SupportsWorking):
         self._current_task = task
         self._current_task.start()
         self.print_msg(
-            f"{self} start working on {task} (est. time: {task.seconds_to_finish:.2f}s)"
+            f"{self} starts working on {task} (est. time: {task.seconds_to_finish:.2f}s)"
         )
 
 
@@ -129,7 +129,7 @@ class Manager(Entity):
         self._disposed_task = False
 
     def __repr__(self):
-        return f"Manager(\"{self.name}\")"
+        return f'Manager("{self.name}")'
 
     @property
     def max_queued_tasks(self) -> int:
