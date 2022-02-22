@@ -77,13 +77,19 @@ class Event:
 
         return self._list.pop(idx)
 
-    def attach(self, func: Callable) -> None:
+    def attach(self, func: Callable) -> bool:
         if func not in self._list:
             self._list.append(func)
+            return True
 
-    def detach(self, func: Callable = None) -> None:
+        return False
+
+    def detach(self, func: Callable = None) -> bool:
         if func in self._list:
             self._list.remove(func)
+            return True
+
+        return False
 
     def reattach(self, func: Callable) -> None:
         self.detach(func)

@@ -1,83 +1,38 @@
 import enum
 import time
-from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol
+from typing import Any, Dict, Iterable
 
-from . import tasks
-from .. import utils
-
-
-class SupportsUpdates(Protocol):
-    def update(self):
-        pass
-
-    def after_update(self):
-        pass
-
-
-class SupportsWorking(Protocol):
-    def work_on(self, task: tasks.Task) -> None:
-        pass
-
-
-class EventNames(enum.Enum):
-    Update = enum.auto()
-    AfterUpdate = enum.auto()
-
-    DisposeTask = enum.auto()
+from . import entities, tasks
 
 
 class App:
-    _events: Dict[EventNames, utils.Event]
+    _event_pool: Dict[enum.Enum, Any]
+    _task_pool: tasks.TaskPool
 
-    _tasks_pool: List[tasks.Task]
     _start_time: float
 
     def __init__(self) -> None:
+        self._event_pool = entities.create_events_pool()
+        self._task_pool = tasks.TaskPool()
+
         self._start_time = time.time()
-        self._events = {
-            EventNames.Update: utils.Event(),
-            EventNames.AfterUpdate: utils.Event(),
-        }
-
-        dispose_task_event = utils.Event()
-        dispose_task_event.event_distribution = utils.ForFirstToTakeDistribution()
-        self._events[EventNames.DisposeTask] = dispose_task_event
-
-        self._tasks_pool = []
-
-    def log(self, message: Any) -> None:
-        print(f"Time: {time.time() - self._start_time:.2f}s | {message}")
+        self._event_pool[entities.EventNames.Log].attach(self.print_msg)
 
     def run(self) -> None:
-        self._events[EventNames.Update]()
-        self._events[EventNames.AfterUpdate]()
+        self._event_pool[entities.EventNames.Update]()
+        self._event_pool[entities.EventNames.AfterUpdate]()
+        self._event_pool[entities.EventNames.DistributeTasks](self._task_pool)
 
-    def subscribe(self, name: EventNames, fun: Callable) -> None:
-        self._events[name].attach(fun)
+    def add_entities(self, *entities_: entities.Entity) -> None:
+        for entity in entities_:
+            entity.subscribe(self._event_pool)
 
-    def unsubscribe(self, name: EventNames, fun: Callable) -> None:
-        self._events[name].detach(fun)
+    def remove_entities(self, *entities_: entities.Entity) -> None:
+        for entity in entities_:
+            entity.unsubscribe()
 
     def load_tasks(self, tasks_iterable: Iterable[tasks.Task]) -> None:
-        self._tasks_pool += list(tasks_iterable)
+        self._task_pool.put(*tasks_iterable)
 
-    def get_task(self) -> Optional[tasks.Task]:
-        if not self._tasks_pool:
-            return None
-
-        return self._tasks_pool.pop()
-
-    def join_task_disposition(self, obj_: SupportsWorking) -> bool:
-        if obj_.work_on in self._events[EventNames.DisposeTask]:
-            return False
-
-        self._events[EventNames.DisposeTask].attach(obj_.work_on)
-        self.log(f"{obj_} queued for a task")
-        return True
-
-    def dispose_task(self, task: tasks.Task) -> bool:
-        if self._events[EventNames.DisposeTask].empty:
-            return False
-
-        self._events[EventNames.DisposeTask](task)
-        return True
+    def print_msg(self, message: str) -> None:
+        print(f"Time: {time.time() - self._start_time:.2f}s | {message}")
