@@ -1,11 +1,11 @@
 import enum
-from typing import Dict, List, Optional, Protocol, runtime_checkable
+from typing import Dict, Optional, Protocol, runtime_checkable
 
 from . import tasks
 from .. import utils
 
 
-class EventNames(enum.Enum):
+class EntityEvents(enum.Enum):
     Update = enum.auto()
     AfterUpdate = enum.auto()
 
@@ -15,27 +15,27 @@ class EventNames(enum.Enum):
     Log = enum.auto()
 
 
-def create_events_pool() -> Dict[enum.Enum, utils.Event]:
+def create_event_pool() -> Dict[enum.Enum, utils.Event]:
     event_pool = {
-        EventNames.Update: utils.Event(),
-        EventNames.AfterUpdate: utils.Event(),
-        EventNames.DistributeTasks: utils.Event(),
-        EventNames.Log: utils.Event(),
+        EntityEvents.Update: utils.Event(),
+        EntityEvents.AfterUpdate: utils.Event(),
+        EntityEvents.DistributeTasks: utils.Event(),
+        EntityEvents.Log: utils.Event(),
     }
 
     task_disposition_event = utils.Event()
     task_disposition_event.event_distribution = utils.ForFirstToTakeDistribution()
-    event_pool[EventNames.DisposeTask] = task_disposition_event
+    event_pool[EntityEvents.DisposeTask] = task_disposition_event
     return event_pool
 
 
 @runtime_checkable
 class SupportsUpdates(Protocol):
     def update(self):
-        pass
+        raise NotImplementedError
 
     def after_update(self):
-        pass
+        raise NotImplementedError
 
 
 @runtime_checkable
@@ -47,7 +47,20 @@ class SupportsWorking(Protocol):
         return self._current_task is not None
 
     def work_on(self, task: tasks.Task) -> None:
-        pass
+        raise NotImplementedError
+
+
+@runtime_checkable
+class SupportsTaskManagement(Protocol):
+    @property
+    def can_collect_task(self) -> bool:
+        raise NotImplementedError
+
+    def dispose_task(self) -> Optional[tasks.Task]:
+        raise NotImplementedError
+
+    def collect_task(self, task_pool: tasks.TaskPool) -> None:
+        raise NotImplementedError
 
 
 class Entity(SupportsUpdates):
@@ -73,16 +86,16 @@ class Entity(SupportsUpdates):
 
     def subscribe(self, event_pool: Dict[enum.Enum, utils.Event]) -> None:
         self._event_pool = event_pool
-        self._event_pool[EventNames.Update].attach(self.update)
-        self._event_pool[EventNames.AfterUpdate].attach(self.after_update)
+        self._event_pool[EntityEvents.Update].attach(self.update)
+        self._event_pool[EntityEvents.AfterUpdate].attach(self.after_update)
 
     def unsubscribe(self) -> None:
-        self._event_pool[EventNames.Update].detach(self.update)
-        self._event_pool[EventNames.AfterUpdate].detach(self.after_update)
+        self._event_pool[EntityEvents.Update].detach(self.update)
+        self._event_pool[EntityEvents.AfterUpdate].detach(self.after_update)
         self._event_pool = {}
 
     def print_msg(self, msg: str) -> None:
-        self._event_pool[EventNames.Log](msg)
+        self._event_pool[EntityEvents.Log](msg)
 
 
 class Worker(Entity, SupportsWorking):
@@ -99,7 +112,7 @@ class Worker(Entity, SupportsWorking):
             msgs.append(f"done {self._current_task}")
             self._current_task = None
 
-        if not self.is_busy and self._event_pool[EventNames.DisposeTask].attach(
+        if not self.is_busy and self._event_pool[EntityEvents.DisposeTask].attach(
             self.work_on
         ):
             msgs.append(f"queued for next task")
@@ -108,7 +121,7 @@ class Worker(Entity, SupportsWorking):
             self.print_msg(f"{self} {' and '.join(msgs)}")
 
     def work_on(self, task: tasks.Task) -> None:
-        self._event_pool[EventNames.DisposeTask].detach(self.work_on)
+        self._event_pool[EntityEvents.DisposeTask].detach(self.work_on)
         self._current_task = task
         self._current_task.start()
         self.print_msg(
@@ -116,16 +129,16 @@ class Worker(Entity, SupportsWorking):
         )
 
 
-class Manager(Entity):
-    _tasks_pool: tasks.TaskPool
-    _tasks_queue_len: int
+class Manager(Entity, SupportsTaskManagement):
+    _task_pool: tasks.TaskPool
+    _task_queue_len: int
     _disposed_task: bool
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
 
-        self._tasks_pool = tasks.TaskPool()
-        self._tasks_queue_len = 1
+        self._task_pool = tasks.TaskPool()
+        self._task_queue_len = 1
         self._disposed_task = False
 
     def __repr__(self):
@@ -134,24 +147,20 @@ class Manager(Entity):
     @property
     def max_queued_tasks(self) -> int:
         """Maximum amount of tasks to collect. For no limit, set to 0"""
-        return self._tasks_queue_len
+        return self._task_queue_len
 
     @max_queued_tasks.setter
     def max_queued_tasks(self, value: int) -> None:
-        self._tasks_queue_len = max(0, int(value))
-
-    @property
-    def can_collect_task(self) -> bool:
-        return self.max_queued_tasks and len(self._tasks_pool) < self.max_queued_tasks
+        self._task_queue_len = max(0, int(value))
 
     def update(self) -> None:
-        collect_event = self._event_pool[EventNames.DistributeTasks]
+        collect_event = self._event_pool[EntityEvents.DistributeTasks]
         if self.can_collect_task:
             collect_event.attach(self.collect_task)
         else:
             collect_event.detach(self.collect_task)
 
-        if self._tasks_pool:
+        if self._task_pool:
             self.dispose_task()
 
     def after_update(self) -> None:
@@ -163,31 +172,35 @@ class Manager(Entity):
 
     def move_to_end_of_update_queue(self) -> None:
         # this assures that manager waits for another managers to dispose their tasks
-        self._event_pool[EventNames.Update].detach(self.update)
-        self._event_pool[EventNames.Update].attach(self.update)
+        self._event_pool[EntityEvents.Update].detach(self.update)
+        self._event_pool[EntityEvents.Update].attach(self.update)
         self.print_msg(f"{self} moved to the end of the queue")
 
+    @property
+    def can_collect_task(self) -> bool:
+        return self.max_queued_tasks and len(self._task_pool) < self.max_queued_tasks
+
     def dispose_task(self) -> Optional[tasks.Task]:
-        task = self._tasks_pool.get()
+        task = self._task_pool.get()
         if not task:
             return None
 
-        disposition_successful = self._event_pool[EventNames.DisposeTask](task)
+        disposition_successful = self._event_pool[EntityEvents.DisposeTask](task)
         if not disposition_successful:
-            self._tasks_pool.put(task)
+            self._task_pool.put(task)
             return None
 
         self._disposed_task = True
         self.print_msg(f"{self} disposed {task} successfully")
         return task
 
-    def collect_task(self, tasks_pool: tasks.TaskPool) -> None:
-        task = tasks_pool.get()
+    def collect_task(self, task_pool: tasks.TaskPool) -> None:
+        task = task_pool.get()
         if not task:
             return None
 
-        self._tasks_pool.put(task)
+        self._task_pool.put(task)
         self.print_msg(
             f"{self} collected {task} | tasks to dispose: "
-            f"{[str(task) for task in self._tasks_pool]}"
+            f"{[str(task) for task in self._task_pool]}"
         )

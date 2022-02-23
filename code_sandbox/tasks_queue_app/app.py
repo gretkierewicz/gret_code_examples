@@ -12,16 +12,16 @@ class App:
     _start_time: float
 
     def __init__(self) -> None:
-        self._event_pool = entities.create_events_pool()
+        self._event_pool = entities.create_event_pool()
         self._task_pool = tasks.TaskPool()
 
         self._start_time = time.time()
-        self._event_pool[entities.EventNames.Log].attach(self.print_msg)
+        self._event_pool[entities.EntityEvents.Log].attach(self.print_msg)
 
     def run(self) -> None:
-        self._event_pool[entities.EventNames.Update]()
-        self._event_pool[entities.EventNames.AfterUpdate]()
-        self._event_pool[entities.EventNames.DistributeTasks](self._task_pool)
+        self._event_pool[entities.EntityEvents.Update]()
+        self._event_pool[entities.EntityEvents.AfterUpdate]()
+        self._event_pool[entities.EntityEvents.DistributeTasks](self._task_pool)
 
     def add_entities(self, *entities_: entities.Entity) -> None:
         for entity in entities_:
