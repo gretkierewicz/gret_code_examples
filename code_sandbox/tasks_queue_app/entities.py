@@ -118,7 +118,7 @@ class Worker(Entity, SupportsWorking):
             msgs.append(f"queued for next task")
 
         if msgs:
-            self.print_msg(f"{self} {' and '.join(msgs)}")
+            self.log(f"{self} {' and '.join(msgs)}")
 
     def work_on(self, task: tasks.Task) -> None:
         self._event_pool[EntityEvents.DisposeTask].detach(self.work_on)
