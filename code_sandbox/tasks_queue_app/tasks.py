@@ -1,4 +1,3 @@
-import random
 import time
 from typing import Iterator, List, Optional
 
@@ -6,7 +5,7 @@ from typing import Iterator, List, Optional
 class Task:
     def __init__(self, name: str) -> None:
         self._name = name
-        self._seconds_to_finish = random.uniform(0.02, 0.2)
+        self._seconds_to_finish = 0
         self._start_time = None
 
     def __str__(self) -> str:
@@ -19,6 +18,10 @@ class Task:
     @property
     def seconds_to_finish(self) -> float:
         return self._seconds_to_finish
+
+    @seconds_to_finish.setter
+    def seconds_to_finish(self, seconds: float) -> None:
+        self._seconds_to_finish = max(.0, seconds)
 
     @property
     def is_done(self) -> bool:
