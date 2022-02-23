@@ -94,7 +94,7 @@ class Entity(SupportsUpdates):
         self._event_pool[EntityEvents.AfterUpdate].detach(self.after_update)
         self._event_pool = {}
 
-    def print_msg(self, msg: str) -> None:
+    def log(self, msg: str) -> None:
         self._event_pool[EntityEvents.Log](msg)
 
 
@@ -124,7 +124,7 @@ class Worker(Entity, SupportsWorking):
         self._event_pool[EntityEvents.DisposeTask].detach(self.work_on)
         self._current_task = task
         self._current_task.start()
-        self.print_msg(
+        self.log(
             f"{self} starts working on {task} (est. time: {task.seconds_to_finish:.2f}s)"
         )
 
@@ -174,7 +174,7 @@ class Manager(Entity, SupportsTaskManagement):
         # this assures that manager waits for another managers to dispose their tasks
         self._event_pool[EntityEvents.Update].detach(self.update)
         self._event_pool[EntityEvents.Update].attach(self.update)
-        self.print_msg(f"{self} moved to the end of the queue")
+        self.log(f"{self} moved to the end of the {event.value} queue")
 
     @property
     def can_collect_task(self) -> bool:
@@ -191,7 +191,7 @@ class Manager(Entity, SupportsTaskManagement):
             return None
 
         self._disposed_task = True
-        self.print_msg(f"{self} disposed {task} successfully")
+        self.log(f"{self} disposed {task} successfully")
         return task
 
     def collect_task(self, task_pool: tasks.TaskPool) -> None:
@@ -200,7 +200,7 @@ class Manager(Entity, SupportsTaskManagement):
             return None
 
         self._task_pool.put(task)
-        self.print_msg(
+        self.log(
             f"{self} collected {task} | tasks to dispose: "
             f"{[str(task) for task in self._task_pool]}"
         )

@@ -16,12 +16,12 @@ class App:
         self._task_pool = tasks.TaskPool()
 
         self._start_time = time.time()
-        self._event_pool[entities.EntityEvents.Log].attach(self.print_msg)
+        self._event_pool[entities.EntityEvents.Log].attach(self.print_log)
 
     def run(self) -> None:
         self._event_pool[entities.EntityEvents.Update]()
         self._event_pool[entities.EntityEvents.AfterUpdate]()
-        self._event_pool[entities.EntityEvents.DistributeTasks](self._task_pool)
+        self._event_pool[entities.EntityEvents.GetTask](self._task_pool)
 
     def add_entities(self, *entities_: entities.Entity) -> None:
         for entity in entities_:
@@ -34,5 +34,5 @@ class App:
     def load_tasks(self, tasks_iterable: Iterable[tasks.Task]) -> None:
         self._task_pool.put(*tasks_iterable)
 
-    def print_msg(self, message: str) -> None:
+    def print_log(self, message: str) -> None:
         print(f"Time: {time.time() - self._start_time:.2f}s | {message}")
