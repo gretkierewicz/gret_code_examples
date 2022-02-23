@@ -2,6 +2,12 @@ import time
 from typing import Iterator, List, Optional
 
 
+__all__ = [
+    "Task",
+    "TaskPool",
+]
+
+
 class Task:
     def __init__(self, name: str) -> None:
         self._name = name
@@ -21,7 +27,7 @@ class Task:
 
     @seconds_to_finish.setter
     def seconds_to_finish(self, seconds: float) -> None:
-        self._seconds_to_finish = max(.0, seconds)
+        self._seconds_to_finish = max(0.0, seconds)
 
     @property
     def is_done(self) -> bool:
