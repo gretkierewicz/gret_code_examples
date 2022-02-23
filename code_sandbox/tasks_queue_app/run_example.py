@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     m1 = entities.Manager("Irene (M)")
     m2 = entities.Manager("Clark (M)")
-    m2.max_queued_tasks = 2
+    m1.max_queued_tasks = 2
 
     main_app.add_entities(w1, w2, m1, m2)
 
