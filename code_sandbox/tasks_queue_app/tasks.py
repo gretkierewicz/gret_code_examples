@@ -40,11 +40,24 @@ class TaskPool:
     def put(self, *tasks: Task) -> None:
         self._pool += list(tasks)
 
-    def get(self) -> Optional[Task]:
+    def pop(self) -> Optional[Task]:
         if not self._pool:
             return None
 
         return self._pool.pop(0)
+
+    def get(self) -> Optional[Task]:
+        if not self._pool:
+            return None
+
+        return self._pool[0]
+
+    def remove(self, task: Task) -> bool:
+        if task not in self._pool:
+            return False
+
+        self._pool.remove(task)
+        return True
 
     def __iter__(self) -> Iterator[Task]:
         return self._pool.__iter__()

@@ -132,14 +132,14 @@ class Worker(Entity, SupportsWorking):
 class Manager(Entity, SupportsTaskManagement):
     _task_pool: tasks.TaskPool
     _task_queue_len: int
-    _disposed_task: bool
+    _did_task_disposition: bool
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
 
         self._task_pool = tasks.TaskPool()
         self._task_queue_len = 1
-        self._disposed_task = False
+        self._did_task_disposition = False
 
     def __repr__(self):
         return f'Manager("{self.name}")'
@@ -161,12 +161,12 @@ class Manager(Entity, SupportsTaskManagement):
             self.dispose_task()
 
     def after_update(self) -> None:
-        if not self._disposed_task:
+        if not self._did_task_disposition:
             return
 
         # this assures that manager waits for another managers to dispose their tasks
         self.rejoin_event_queue(self.update, EntityEvents.Update)
-        self._disposed_task = False
+        self._did_task_disposition = False
 
     def rejoin_event_queue(self, subscriber: Callable, event: EntityEvents) -> None:
         self._event_pool[event].detach(subscriber)
@@ -182,12 +182,11 @@ class Manager(Entity, SupportsTaskManagement):
         if not task:
             return None
 
-        disposition_successful = self._event_pool[EntityEvents.DisposeTask](task)
-        if not disposition_successful:
-            self._task_pool.put(task)
+        self._did_task_disposition = self._event_pool[EntityEvents.DisposeTask](task)
+        if not self._did_task_disposition:
             return None
 
-        self._disposed_task = True
+        self._task_pool.remove(task)
         self.log(f"{self} disposed {task} successfully")
         return task
 
@@ -196,7 +195,7 @@ class Manager(Entity, SupportsTaskManagement):
             self._event_pool[EntityEvents.GetTask].detach(self.collect_task)
             return None
 
-        task = task_pool.get()
+        task = task_pool.pop()
         if not task:
             return None
 
