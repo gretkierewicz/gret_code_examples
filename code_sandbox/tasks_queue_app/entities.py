@@ -1,25 +1,25 @@
 import enum
-from typing import Dict, Optional, Protocol, runtime_checkable
+from typing import Callable, Dict, Optional, Protocol, runtime_checkable
 
 from . import tasks
 from .. import utils
 
 
 class EntityEvents(enum.Enum):
-    Update = enum.auto()
-    AfterUpdate = enum.auto()
+    Update = "Update Event"
+    AfterUpdate = "After Update Event"
 
-    DistributeTasks = enum.auto()
-    DisposeTask = enum.auto()
+    GetTask = "Get Task Event"
+    DisposeTask = "Dispose Task Event"
 
-    Log = enum.auto()
+    Log = "Log Event"
 
 
 def create_event_pool() -> Dict[enum.Enum, utils.Event]:
     event_pool = {
         EntityEvents.Update: utils.Event(),
         EntityEvents.AfterUpdate: utils.Event(),
-        EntityEvents.DistributeTasks: utils.Event(),
+        EntityEvents.GetTask: utils.Event(),
         EntityEvents.Log: utils.Event(),
     }
 
@@ -154,11 +154,8 @@ class Manager(Entity, SupportsTaskManagement):
         self._task_queue_len = max(0, int(value))
 
     def update(self) -> None:
-        collect_event = self._event_pool[EntityEvents.DistributeTasks]
         if self.can_collect_task:
-            collect_event.attach(self.collect_task)
-        else:
-            collect_event.detach(self.collect_task)
+            self._event_pool[EntityEvents.GetTask].attach(self.collect_task)
 
         if self._task_pool:
             self.dispose_task()
@@ -167,13 +164,13 @@ class Manager(Entity, SupportsTaskManagement):
         if not self._disposed_task:
             return
 
-        self.move_to_end_of_update_queue()
+        # this assures that manager waits for another managers to dispose their tasks
+        self.rejoin_event_queue(self.update, EntityEvents.Update)
         self._disposed_task = False
 
-    def move_to_end_of_update_queue(self) -> None:
-        # this assures that manager waits for another managers to dispose their tasks
-        self._event_pool[EntityEvents.Update].detach(self.update)
-        self._event_pool[EntityEvents.Update].attach(self.update)
+    def rejoin_event_queue(self, subscriber: Callable, event: EntityEvents) -> None:
+        self._event_pool[event].detach(subscriber)
+        self._event_pool[event].attach(subscriber)
         self.log(f"{self} moved to the end of the {event.value} queue")
 
     @property
@@ -195,6 +192,10 @@ class Manager(Entity, SupportsTaskManagement):
         return task
 
     def collect_task(self, task_pool: tasks.TaskPool) -> None:
+        if not self.can_collect_task:
+            self._event_pool[EntityEvents.GetTask].detach(self.collect_task)
+            return None
+
         task = task_pool.get()
         if not task:
             return None
